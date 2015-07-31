@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 ID=$(date +%s)
+LOG="../em-$ID.log"
 
 init_dir () {
   DIR="em-$ID"
@@ -11,36 +12,55 @@ init_man () {
   man -k . | awk '{print $1}' | grep "(1)" | \
     sed 's/(1)//g' | sed 's/,//g' | xargs touch
 
-  echo "$(($(ls -l | wc -l) - 1)) man page(s) found."
+  echo "$(($(ls -l | wc -l) - 1)) man pages found."
 }
 
-check_man () {
-  man "$1" > /dev/null 2>&1
+_check_man () {
+  man "$1" > /dev/null 2>&1 || \
+    echo "warning: $1 not found." >> $LOG
 }
 
-export_man () { 
-  man $1 2>> ../em-$ID.log | col -b 1> $1 || \
+_export_man () { 
+  man $1 2>> $LOG | col -b 1> $1 || \
     return 5 
 }
 
-add_extension () {
+_add_extension () {
   for FILE in *; do
     mv "$FILE" "$FILE.txt"
   done
 }
 
+export_man () {
+  for COMMAND in *; do
+    _check_man $COMMAND && _export_man $COMMAND
+  done
+  _add_extension || return 6
+  
+  return $?
+}
+
+write_log () {
+  tee -a $LOG
+}
+
 error_handling () {
   local prefix="error: unable to"
   case $1 in
-    3) echo "$prefix create directory: $DIR"
+    3) echo "$prefix create directory: $DIR" | \
+      write_log
       ;;
-    4) echo "$prefix scan or create man files"
+    4) echo "$prefix scan or create man files" | \
+      write_log
       ;;
-    5) echo "$prefix export $COMMAND's man page"
+    5) echo "$prefix export $COMMAND's man page" | \
+      write_log
       ;;
-    6) echo "$prefix add extension to exported man"
+    6) echo "$prefix add extension to exported mans" | \
+      write_log
       ;;
-    *) echo "error: unknown error(s) :("
+    *) echo "error: unknown error(s) :(" | \
+      write_log
       ;;
   esac
 }
@@ -52,12 +72,9 @@ main () {
   init_man || return 4
 
   echo "exporting..."
-  for COMMAND in *; do
-    check_man $COMMAND && export_man $COMMAND && echo "$COMMAND: OKAY"
-  done
-  add_extension || return 6
+  return $(export_man)
 }
 
-main || error_handling $? && exit 1
+main || error_handling $?
 echo "done in $(($(date +%s) - ID)) seconds." | \
-  tee -a ../em-$ID.log
+  tee -a $LOG
