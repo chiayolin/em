@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+ID=$(date +%s)
+
+init_dir () {
+  DIR="em-$ID"
+  echo "id: $DIR"
+  mkdir $DIR && cd $DIR
+}
+
+init_man () {
+  man -k . | awk '{print $1}' | grep "(1)" | \
+    sed 's/(1)//g' | sed 's/,//g' | xargs touch
+
+  echo "$(($(ls -l | wc -l) - 1)) man page(s) found."
+}
+
+check_man () {
+  man "$1" > /dev/null 2>&1
+}
+
+export_man () { 
+  man $1 2>> ../em-$ID.log | col -b 1> $1 || \
+    return 5 
+}
+
+add_extension () {
+  for FILE in *; do
+    mv "$FILE" "$FILE.txt"
+  done
+}
+
+error_handling () {
+  local prefix="error: unable to"
+  case $1 in
+    3) echo "$prefix create directory: $DIR"
+      ;;
+    4) echo "$prefix scan or create man files"
+      ;;
+    5) echo "$prefix export $COMMAND's man page"
+      ;;
+    6) echo "$prefix add extension to exported man"
+      ;;
+    *) echo "error: unknown error(s) :("
+      ;;
+  esac
+}
+
+main () {
+  echo "initializing..."
+  init_dir || return 3
+  echo "scanning..."
+  init_man || return 4
+
+  echo "exporting..."
+  for COMMAND in *; do
+    check_man $COMMAND && export_man $COMMAND && echo "$COMMAND: OKAY"
+  done
+  add_extension || return 6
+}
+
+main || error_handling $? && exit 1
+echo "done in $(($(date +%s) - ID)) seconds." | \
+  tee -a ../em-$ID.log
