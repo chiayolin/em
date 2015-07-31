@@ -25,7 +25,7 @@ drwxr-xr-x  1361 foo  bar  46274 Dec 30 09:14 em-883440000
 ...
 ```
 
-One of the files is the directory where every plaintext version of man(1) page is exported. And obviously, the one ended with the surfix `.log` is the log file. Note that the number followed by `em-` is the [Unix time](https://en.wikipedia.org/wiki/Unix_time). The reason of putting Unix time stamp after `em-` is to prevent duplicate directories within the same directory. In other words, you can export the manual pages again using `em` if there's a update, without worrying about overwriting the old backup.
+One of the files is the directory where every plaintext version of man(1) page is exported. And obviously, the one ended with the surfix `.log` is the log file. Note that the number followed by `em-` is the [Unix time](https://en.wikipedia.org/wiki/Unix_time). The reason of putting Unix time stamp after `em-` is to prevent duplicate directories within the same directory. 
 
 License
 -------
