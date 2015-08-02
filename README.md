@@ -12,7 +12,7 @@ Usage
 ./bin/em
 ```
 
-It takes about two and half minutes to export all the man pages into plaintext files.
+It takes about two and half minutes to export all the man pages into plaintext files on my MacBook Air (Early 2014).
 
 After the program finishes running, you will find two new files with the prefix `em-`: 
 
